@@ -89,6 +89,8 @@ app.use("/category-requests", categoryReqRoutes)
 app.use("/audit-logs", auditLogRoutes)
 app.use("/profile", profileRoutes)
 
-server.listen(4000, () => {
-  console.log("Server jalan 🚀")
-})
+const PORT = process.env.PORT || 4000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on ${PORT}`);
+});
