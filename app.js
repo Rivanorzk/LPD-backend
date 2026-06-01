@@ -91,6 +91,6 @@ app.use("/profile", profileRoutes)
 
 const PORT = process.env.PORT || 4000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on ${PORT}`);
 });
