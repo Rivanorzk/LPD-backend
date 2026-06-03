@@ -333,10 +333,15 @@ export async function reportPdf(
       })
     }
 
-    const browser =
-      await puppeteer.launch({
-        headless: true,
-      })
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+      ],
+    })
 
     const BASE_URL = process.env.BASE_URL;
 
@@ -623,15 +628,11 @@ export async function reportPdf(
     res.send(pdf)
 
   } catch (error) {
-
-    console.log(
-      "PDF ERROR:",
-      error
-    )
+    console.error("PDF ERROR:", error)
 
     res.status(500).json({
-      message:
-        "Gagal generate PDF",
+      message: error.message,
+      stack: error.stack,
     })
   }
 }
