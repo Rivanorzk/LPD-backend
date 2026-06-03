@@ -1,4 +1,4 @@
-import express from "express"
+import express, { Router } from "express"
 import { verifyToken, checkRole } from "../middleware/auth.js"
 import {
   createReport,
@@ -29,6 +29,8 @@ const storage = new CloudinaryStorage({
 const upload = multer({
   storage,
 })
+  
+const router = express.Router()
 
 router.post("/", verifyToken, upload.single("image"), createReport)
 router.get("/", verifyToken, getAllReport)
