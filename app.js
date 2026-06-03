@@ -1,5 +1,6 @@
 import express from "express"
 import cors from "cors"
+import fs from "fs"
 import http from "http" 
 import { Server } from "socket.io"
 import authRoutes from "./routes/authRoute.js"
@@ -88,6 +89,11 @@ app.use("/chat", chatRoutes)
 app.use("/category-requests", categoryReqRoutes)
 app.use("/audit-logs", auditLogRoutes)
 app.use("/profile", profileRoutes)
+
+
+app.get("/debug-files", (req, res) => {
+  res.json(fs.readdirSync("uploads"))
+})
 
 const PORT = process.env.PORT || 4000;
 
