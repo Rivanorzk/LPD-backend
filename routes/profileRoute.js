@@ -8,37 +8,27 @@ import {
 } from "../controllers/profileController.js"
 
 import multer from "multer"
-import path from "path"
+import { CloudinaryStorage } from "multer-storage-cloudinary"
+import cloudinary from "../config/cloudinary.js"
 
 const router = express.Router()
 
-const storage =
-  multer.diskStorage({
-    destination: (
-      req,
-      file,
-      cb
-    ) => {
-      cb(null, "uploads/")
-    },
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "profile-images",
+    allowed_formats: [
+      "jpg",
+      "jpeg",
+      "png",
+      "webp",
+    ],
+  },
+})
 
-    filename: (
-      req,
-      file,
-      cb
-    ) => {
-      cb(
-        null,
-        Date.now() +
-          path.extname(
-            file.originalname
-          )
-      )
-    },
-  })
-
-const upload =
-  multer({ storage })
+const upload = multer({
+  storage,
+})
 
 router.get(
   "/",

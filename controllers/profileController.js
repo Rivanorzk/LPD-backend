@@ -127,14 +127,14 @@ export async function updateProfileImage(
       WHERE id = ?
       `,
       [
-        req.file.filename,
+        req.file.path,
         req.user.id,
       ]
     )
 
     res.json({
       image:
-        req.file.filename,
+        req.file.path,
       message:
         "Foto profil berhasil diperbarui",
     })
