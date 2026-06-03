@@ -10,25 +10,25 @@ import {
   reportPdf,
 } from "../controllers/laporanController.js"
 import multer from "multer"
+import { CloudinaryStorage } from "multer-storage-cloudinary"
+import cloudinary from "../config/cloudinary.js"
 
-const router = express.Router()
-import path from "path"
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/")
-  },
-
-  filename: (req, file, cb) => {
-    cb(
-      null,
-      Date.now() +
-        path.extname(file.originalname)
-    )
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "laporan-masyarakat",
+    allowed_formats: [
+      "jpg",
+      "jpeg",
+      "png",
+      "webp",
+    ],
   },
 })
 
-const upload = multer({ storage })
+const upload = multer({
+  storage,
+})
 
 router.post("/", verifyToken, upload.single("image"), createReport)
 router.get("/", verifyToken, getAllReport)

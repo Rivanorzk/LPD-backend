@@ -15,7 +15,7 @@ export async function createReport(req, res) {
   } = req.body
 
   const image = req.file
-    ? req.file.filename
+    ? req.file.path
     : null
 
   const [result] = await db.query(
@@ -488,7 +488,7 @@ export async function reportPdf(
         <div class="header">
           <img
             class="logo"
-            src="${BASE_URL}/uploads/logo.png"
+            src="${process.env.LOGO_URL}"
           />
 
           <div class="title">
@@ -554,7 +554,7 @@ export async function reportPdf(
             ? `
             <img
               class="image"
-              src="${BASE_URL}/uploads/${report.image}"
+              src="${report.image}"
             />
           `
             : ""
