@@ -7,7 +7,6 @@ export async function register(req, res) {
   try {
     const { username, password } = req.body
 
-
     const [existingUser] = await db.query(
       "SELECT * FROM users WHERE username = ?",
       [username]

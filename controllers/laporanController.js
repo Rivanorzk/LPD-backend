@@ -66,36 +66,50 @@ export async function getAllReport(
     const { category } = req.query
 
     let query = `
-      SELECT 
+      SELECT
         r.*,
         u.username,
         u.image AS profile_image,
         c.nama_kategori,
+        COALESCE(l.total_likes,0) AS total_likes,
+        COALESCE(cm.total_comments,0) AS total_comments,
 
-        COUNT(DISTINCT l.id) AS total_likes,
-        COUNT(DISTINCT cm.id) AS total_comments,
-
-        MAX(
-          CASE
-            WHEN l.user_id = ?
-            THEN 1
-            ELSE 0
-          END
-        ) AS liked_by_user
+        CASE
+          WHEN ul.report_id IS NOT NULL THEN 1
+          ELSE 0
+        END AS liked_by_user
 
       FROM report r
 
       LEFT JOIN users u
-      ON r.user_id = u.id
+        ON r.user_id = u.id
 
       LEFT JOIN categories c
-      ON r.kategori_id = c.id
+        ON r.kategori_id = c.id
 
-      LEFT JOIN likes l
-      ON r.id = l.report_id
+      LEFT JOIN (
+        SELECT
+          report_id,
+          COUNT(*) total_likes
+        FROM likes
+        GROUP BY report_id
+      ) l
+        ON r.id = l.report_id
 
-      LEFT JOIN comments cm
-      ON r.id = cm.report_id
+      LEFT JOIN (
+        SELECT
+          report_id,
+          COUNT(*) total_comments
+        FROM comments
+        GROUP BY report_id
+      ) cm
+        ON r.id = cm.report_id
+
+      LEFT JOIN likes ul
+        ON ul.report_id = r.id
+        AND ul.user_id = ?
+
+      ORDER BY r.created_at DESC
     `
 
     const params = [req.user.id]
@@ -108,13 +122,6 @@ export async function getAllReport(
 
       params.push(category)
     }
-
-    query += `
-      GROUP BY r.id
-
-      ORDER BY
-        r.created_at DESC
-    `
 
     const [data] = await db.query(
       query,
@@ -230,40 +237,52 @@ export async function getReportById(req, res) {
   try {
     const [rows] = await db.query(
       `
-      SELECT 
-        r.*,
-        u.username,
-        u.image AS profile_image,
-        c.nama_kategori,
+      SELECT
+      r.*,
+      u.username,
+      u.image AS profile_image,
+      c.nama_kategori,
 
-        COUNT(DISTINCT l.id) AS total_likes,
-        COUNT(DISTINCT cm.id) AS total_comments,
+      COALESCE(l.total_likes,0) AS total_likes,
+      COALESCE(cm.total_comments,0) AS total_comments,
 
-        MAX(
-          CASE
-            WHEN l.user_id = ?
-            THEN 1
-            ELSE 0
-          END
-        ) AS liked_by_user
+      CASE
+        WHEN ul.report_id IS NOT NULL
+        THEN 1
+        ELSE 0
+      END AS liked_by_user
 
-      FROM report r
+    FROM report r
 
-      LEFT JOIN users u
+    LEFT JOIN users u
       ON r.user_id = u.id
 
-      LEFT JOIN categories c
+    LEFT JOIN categories c
       ON r.kategori_id = c.id
 
-      LEFT JOIN likes l
-      ON r.id = l.report_id
+    LEFT JOIN (
+      SELECT
+        report_id,
+        COUNT(*) total_likes
+      FROM likes
+      GROUP BY report_id
+    ) l
+      ON l.report_id = r.id
 
-      LEFT JOIN comments cm
-      ON r.id = cm.report_id
+    LEFT JOIN (
+      SELECT
+        report_id,
+        COUNT(*) total_comments
+      FROM comments
+      GROUP BY report_id
+    ) cm
+      ON cm.report_id = r.id
 
-      WHERE r.id = ?
+    LEFT JOIN likes ul
+      ON ul.report_id = r.id
+      AND ul.user_id = ?
 
-      GROUP BY r.id
+    WHERE r.id = ?
       `,
       [req.user.id, req.params.id]
     )
@@ -318,6 +337,8 @@ export async function reportPdf(
       await puppeteer.launch({
         headless: true,
       })
+
+    const BASE_URL = process.env.BASE_URL;
 
     const page =
       await browser.newPage()
@@ -467,7 +488,7 @@ export async function reportPdf(
         <div class="header">
           <img
             class="logo"
-            src="http://localhost:4000/uploads/logo.png"
+            src="${BASE_URL}/uploads/logo.png"
           />
 
           <div class="title">
@@ -533,7 +554,7 @@ export async function reportPdf(
             ? `
             <img
               class="image"
-              src="http://localhost:4000/uploads/${report.image}"
+              src="${BASE_URL}/uploads/${report.image}"
             />
           `
             : ""
