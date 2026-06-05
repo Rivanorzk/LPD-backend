@@ -32,33 +32,6 @@ export async function createComment(req, res) {
   }
 }
 
-export async function getCommentByReport(req, res) {
-  try {
-    const [rows] = await db.query(
-      `
-      SELECT
-        c.*,
-        u.username,
-        u.image
-      FROM comments c
-      LEFT JOIN users u
-      ON c.user_id = u.id
-      WHERE c.report_id = ?
-      ORDER BY c.created_at DESC
-      `,
-      [req.params.id]
-    )
-
-    res.json(rows)
-  } catch (error) {
-    console.log(error)
-
-    res.status(500).json({
-      message: error.message,
-    })
-  }
-}
-
 export async function updateComment(req, res) {
   try {
     const { id } = req.params
