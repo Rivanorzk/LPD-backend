@@ -220,17 +220,73 @@ export async function updateStatus(
 }
 
 export async function deleteReport(req, res) {
-  const { id } = req.params
+  try {
+    const { id } = req.params
 
-  await db.query(
-    "DELETE FROM report WHERE id=?",
-    [id]
-  )
+    const [reports] = await db.query(
+      `
+      SELECT id, header
+      FROM report
+      WHERE id = ?
+      `,
+      [id]
+    )
 
-  res.json({
-    message: "Report dihapus",
-  })
-  await createAuditLog( req.user.id, "delete_report", `Menghapus laporan dengan ID ${id}` )
+    if (!reports.length) {
+      return res.status(404).json({
+        message: "Report tidak ditemukan",
+      })
+    }
+
+    await db.query(
+      `
+      DELETE FROM notifications
+      WHERE report_id = ?
+      `,
+      [id]
+    )
+
+    await db.query(
+      `
+      DELETE FROM likes
+      WHERE report_id = ?
+      `,
+      [id]
+    )
+
+    await db.query(
+      `
+      DELETE FROM comments
+      WHERE report_id = ?
+      `,
+      [id]
+    )
+
+    await db.query(
+      `
+      DELETE FROM report
+      WHERE id = ?
+      `,
+      [id]
+    )
+
+    await createAuditLog(
+      req.user.id,
+      "delete_report",
+      `Menghapus laporan "${reports[0].header}" dengan ID ${id}`
+    )
+
+    res.json({
+      message: "Report berhasil dihapus",
+    })
+
+  } catch (error) {
+    console.log("DELETE REPORT ERROR:", error)
+
+    res.status(500).json({
+      message: error.message,
+    })
+  }
 }
 
 export async function getReportById(req, res) {

@@ -89,9 +89,6 @@ export async function getSuperadmins(
   }
 }
 
-
-
-
 export async function updateUserRole(
   req,
   res
