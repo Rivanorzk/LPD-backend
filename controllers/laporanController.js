@@ -57,12 +57,8 @@ export async function createReport(req, res) {
   })
 }
 
-export async function getAllReport(
-  req,
-  res
-) {
+export async function getAllReport(req, res) {
   try {
-
     const { category } = req.query
 
     let query = `
@@ -88,18 +84,16 @@ export async function getAllReport(
         ON r.kategori_id = c.id
 
       LEFT JOIN (
-        SELECT
-          report_id,
-          COUNT(*) total_likes
+        SELECT report_id,
+        COUNT(*) total_likes
         FROM likes
         GROUP BY report_id
       ) l
         ON r.id = l.report_id
 
       LEFT JOIN (
-        SELECT
-          report_id,
-          COUNT(*) total_comments
+        SELECT report_id,
+        COUNT(*) total_comments
         FROM comments
         GROUP BY report_id
       ) cm
@@ -108,12 +102,9 @@ export async function getAllReport(
       LEFT JOIN likes ul
         ON ul.report_id = r.id
         AND ul.user_id = ?
-
-      ORDER BY r.created_at DESC
     `
 
     const params = [req.user.id]
-
 
     if (category) {
       query += `
@@ -123,6 +114,10 @@ export async function getAllReport(
       params.push(category)
     }
 
+    query += `
+      ORDER BY r.created_at DESC
+    `
+
     const [data] = await db.query(
       query,
       params
@@ -131,7 +126,6 @@ export async function getAllReport(
     res.json(data)
 
   } catch (error) {
-
     console.log(
       "GET REPORT ERROR:",
       error
@@ -142,7 +136,6 @@ export async function getAllReport(
     })
   }
 }
-
 
 export async function updateStatus(
   req,
