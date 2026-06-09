@@ -4,7 +4,9 @@ import {
   sendMessage,
   getMessages,
   readMessages,
-  getUnreadCount
+  getUnreadCount,
+  getSuperadminUnreadCount,
+  getAdminUnreadCount
 } from "../controllers/chatController.js"
 
 import {
