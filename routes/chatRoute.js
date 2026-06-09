@@ -20,11 +20,16 @@ router.post(
   sendMessage
 )
 
+router.get(
+  "/unread/admin",
+  verifyToken,
+  getAdminUnreadCount
+)
 
 router.get(
-  "/unread",
+  "/unread/superadmin",
   verifyToken,
-  getUnreadCount
+  getSuperadminUnreadCount
 )
 
 router.patch(

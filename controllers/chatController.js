@@ -212,3 +212,73 @@ export async function getUnreadCount(
   }
 }
 
+export async function getAdminUnreadCount(
+  req,
+  res
+) {
+
+  try {
+
+    const [rows] =
+      await db.query(
+        `
+        SELECT
+          COUNT(*) AS unread_count
+
+        FROM chats
+
+        WHERE
+          receiver_id = ?
+          AND is_read = FALSE
+        `,
+        [req.user.id]
+      )
+
+    res.json(
+      rows[0]
+    )
+
+  } catch (error) {
+
+    res.status(500).json({
+      message:
+        error.message,
+    })
+  }
+}
+
+export async function getSuperadminUnreadCount(
+  req,
+  res
+) {
+
+  try {
+
+    const [rows] =
+      await db.query(
+        `
+        SELECT
+          sender_id,
+          COUNT(*) AS unread_count
+
+        FROM chats
+
+        WHERE
+          receiver_id = ?
+          AND is_read = FALSE
+
+        GROUP BY sender_id
+        `,
+        [req.user.id]
+      )
+
+    res.json(rows)
+
+  } catch (error) {
+
+    res.status(500).json({
+      message:
+        error.message,
+    })
+  }
+}
