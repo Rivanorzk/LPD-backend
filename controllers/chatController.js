@@ -223,20 +223,18 @@ export async function getAdminUnreadCount(
       await db.query(
         `
         SELECT
+          sender_id,
           COUNT(*) AS unread_count
-
         FROM chats
-
         WHERE
           receiver_id = ?
           AND is_read = FALSE
+        GROUP BY sender_id
         `,
         [req.user.id]
       )
 
-    res.json(
-      rows[0]
-    )
+    res.json(rows)
 
   } catch (error) {
 
