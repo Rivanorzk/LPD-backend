@@ -32,84 +32,92 @@ export async function getProfile(
   }
 }
 
-export async function updateProfile(
-  req,
-  res
-) {
+export async function updateProfile(req, res) {
   try {
-
     const {
       username,
       oldPassword,
       newPassword,
     } = req.body
 
-    const [users] =
-      await db.query(
-        "SELECT * FROM users WHERE id=?",
-        [req.user.id]
-      )
+    // Validasi username
+    if (!username?.trim()) {
+      return res.status(400).json({
+        message: "Username tidak boleh kosong",
+      })
+    }
+
+    const [users] = await db.query(
+      "SELECT * FROM users WHERE id=?",
+      [req.user.id]
+    )
 
     const user = users[0]
 
     if (!user) {
       return res.status(404).json({
-        message:
-          "User tidak ditemukan",
+        message: "User tidak ditemukan",
       })
     }
 
-    let password =
-      user.password
+    let password = user.password
 
     if (newPassword) {
-
-      const match =
-        await bcrypt.compare(
-          oldPassword,
-          user.password
-        )
+      const match = await bcrypt.compare(
+        oldPassword,
+        user.password
+      )
 
       if (!match) {
         return res.status(400).json({
-          message:
-            "Password lama salah",
+          message: "Password lama salah",
         })
       }
 
-      password =
-        await bcrypt.hash(
-          newPassword,
-          10
-        )
+      password = await bcrypt.hash(
+        newPassword,
+        10
+      )
+    }
+
+    const [existingUser] = await db.query(
+      `
+      SELECT id
+      FROM users
+      WHERE username = ?
+        AND id != ?
+      `,
+      [username.trim(), req.user.id]
+    )
+
+    if (existingUser.length > 0) {
+      return res.status(400).json({
+        message: "Username sudah digunakan",
+      })
     }
 
     await db.query(
       `
       UPDATE users
-      SET username=?,
-          password=?
-      WHERE id=?
+      SET username = ?,
+          password = ?
+      WHERE id = ?
       `,
       [
-        username,
+        username.trim(),
         password,
         req.user.id,
       ]
     )
 
     res.json({
-      message:
-        "Profil berhasil diperbarui",
+      message: "Profil berhasil diperbarui",
     })
-
   } catch (error) {
-
     console.log(error)
 
     res.status(500).json({
-      message:
-        error.message,
+      message: error.message,
     })
   }
 }
